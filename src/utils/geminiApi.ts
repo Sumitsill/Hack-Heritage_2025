@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = 'AIzaSyCpVPGQa8eoB_a-ttot7WJrKbzSymgVx5o';
+const GEMINI_API_KEY = '_____';
 
 interface GeminiResponse {
   candidates: Array<{
