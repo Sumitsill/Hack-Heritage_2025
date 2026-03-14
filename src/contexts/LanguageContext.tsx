@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-type Language = 'en' | 'hi' | 'es' | 'fr';
+export type Language = 'en' | 'hi' | 'bn';
 
 interface LanguageContextType {
   language: Language;
@@ -8,104 +8,96 @@ interface LanguageContextType {
   t: (key: string) => string;
 }
 
-const translations = {
-  en: {
-    'nav.home': 'Home',
-    'nav.map': 'Food Map',
-    'nav.dashboard': 'Dashboard',
-    'nav.contribute': 'Contribute',
-    'nav.profile': 'Profile',
-    'hero.title': 'Fighting Hunger, Reducing Waste',
-    'hero.subtitle': 'Connect surplus food with those in need through our intelligent platform',
-    'hero.cta': 'Join the Movement',
-    'stats.food_saved': 'Meals Saved',
-    'stats.users': 'Active Users',
-    'stats.locations': 'Partner Locations',
-    'features.map.title': 'Interactive Food Map',
-    'features.map.desc': 'Find nearby food sources and donation points',
-    'features.ai.title': 'AI-Powered Matching',
-    'features.ai.desc': 'Smart algorithms connect food with need',
-    'features.community.title': 'Community Driven',
-    'features.community.desc': 'Local volunteers and organizations working together',
-    'contribute.title': 'Share Food, Share Hope',
-    'contribute.desc': 'Your contribution can make a difference',
-    'footer.mission': 'Building a world without hunger and food waste'
-  },
-  hi: {
-    'nav.home': 'मुख्य',
-    'nav.map': 'भोजन मानचित्र',
-    'nav.dashboard': 'डैशबोर्ड',
-    'nav.contribute': 'योगदान',
-    'nav.profile': 'प्रोफ़ाइल',
-    'hero.title': 'भूख से लड़ना, बर्बादी कम करना',
-    'hero.subtitle': 'हमारे बुद्धिमान मंच के माध्यम से अतिरिक्त भोजन को जरूरतमंदों से जोड़ें',
-    'hero.cta': 'आंदोलन में शामिल हों',
-    'stats.food_saved': 'बचाए गए भोजन',
-    'stats.users': 'सक्रिय उपयोगकर्ता',
-    'stats.locations': 'साझीदार स्थान',
-    'features.map.title': 'इंटरैक्टिव भोजन मानचित्र',
-    'features.map.desc': 'पास के भोजन स्रोत और दान बिंदु खोजें',
-    'features.ai.title': 'AI-संचालित मैचिंग',
-    'features.ai.desc': 'स्मार्ट एल्गोरिदम भोजन को आवश्यकता से जोड़ते हैं',
-    'features.community.title': 'समुदाय संचालित',
-    'features.community.desc': 'स्थानीय स्वयंसेवक और संगठन मिलकर काम कर रहे हैं',
-    'contribute.title': 'भोजन बांटें, आशा बांटें',
-    'contribute.desc': 'आपका योगदान एक बदलाव ला सकता है',
-    'footer.mission': 'भूख और भोजन की बर्बादी के बिना एक दुनिया का निर्माण'
-  },
-  es: {
-    'nav.home': 'Inicio',
-    'nav.map': 'Mapa de Comida',
-    'nav.dashboard': 'Panel',
-    'nav.contribute': 'Contribuir',
-    'nav.profile': 'Perfil',
-    'hero.title': 'Luchando contra el Hambre, Reduciendo el Desperdicio',
-    'hero.subtitle': 'Conecta el exceso de comida con quienes lo necesitan a través de nuestra plataforma inteligente',
-    'hero.cta': 'Únete al Movimiento',
-    'stats.food_saved': 'Comidas Salvadas',
-    'stats.users': 'Usuarios Activos',
-    'stats.locations': 'Ubicaciones Socias',
-    'features.map.title': 'Mapa Interactivo de Comida',
-    'features.map.desc': 'Encuentra fuentes de comida cercanas y puntos de donación',
-    'features.ai.title': 'Coincidencias Impulsadas por IA',
-    'features.ai.desc': 'Algoritmos inteligentes conectan comida con necesidad',
-    'features.community.title': 'Impulsado por la Comunidad',
-    'features.community.desc': 'Voluntarios locales y organizaciones trabajando juntos',
-    'contribute.title': 'Comparte Comida, Comparte Esperanza',
-    'contribute.desc': 'Tu contribución puede hacer la diferencia',
-    'footer.mission': 'Construyendo un mundo sin hambre ni desperdicio de alimentos'
-  },
-  fr: {
-    'nav.home': 'Accueil',
-    'nav.map': 'Carte Alimentaire',
-    'nav.dashboard': 'Tableau de Bord',
-    'nav.contribute': 'Contribuer',
-    'nav.profile': 'Profil',
-    'hero.title': 'Lutter contre la Faim, Réduire le Gaspillage',
-    'hero.subtitle': 'Connectez les surplus alimentaires avec ceux qui en ont besoin grâce à notre plateforme intelligente',
-    'hero.cta': 'Rejoignez le Mouvement',
-    'stats.food_saved': 'Repas Sauvés',
-    'stats.users': 'Utilisateurs Actifs',
-    'stats.locations': 'Emplacements Partenaires',
-    'features.map.title': 'Carte Alimentaire Interactive',
-    'features.map.desc': 'Trouvez des sources de nourriture et des points de don à proximité',
-    'features.ai.title': 'Correspondance IA',
-    'features.ai.desc': 'Les algorithmes intelligents connectent la nourriture au besoin',
-    'features.community.title': 'Dirigé par la Communauté',
-    'features.community.desc': 'Bénévoles locaux et organisations travaillant ensemble',
-    'contribute.title': 'Partagez la Nourriture, Partagez l\'Espoir',
-    'contribute.desc': 'Votre contribution peut faire la différence',
-    'footer.mission': 'Construire un monde sans faim ni gaspillage alimentaire'
-  }
-};
-
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  // Try to load initial from localStorage, default 'en'
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      return (localStorage.getItem('appLang') as Language) || 'en';
+    } catch {
+      return 'en';
+    }
+  });
 
+  const setGoogleTranslateCookie = (lang: string) => {
+    // the cookie format is /en/{targetLang} or /en/en. For 'en' it turns it off.
+    // Setting both domain and non-domain cookies handles edge cases
+    const val = lang === 'en' ? '/en/en' : `/en/${lang}`;
+    document.cookie = `googtrans=${val}; path=/`;
+    document.cookie = `googtrans=${val}; path=/; domain=${window.location.hostname}`;
+  };
+
+  const triggerGoogleTranslate = (lang: string) => {
+    try {
+      // Find the select element generated by Google Translate
+      const gCombo = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+      if (gCombo) {
+        gCombo.value = lang;
+        // Google Translate listens for explicit 'change' events
+        gCombo.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } catch (e) {
+      console.warn("Failed to trigger google translate widget manually. Relying on cookie+reload.");
+    }
+  };
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('appLang', lang);
+    setGoogleTranslateCookie(lang);
+    
+    // First try the seamless change
+    triggerGoogleTranslate(lang);
+    
+    // Then reload completely to ensure dynamic components also get re-translated immediately
+    // or if the seamlessly trigger failed
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
+  };
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    setGoogleTranslateCookie(language);
+    
+    // This runs on mount/hydration incase google script loaded after us
+    const timer = setTimeout(() => {
+        if(language !== 'en') {
+            triggerGoogleTranslate(language);
+        }
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, [language]);
+
+  // Compatibility function for legacy mapped text 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    const mappings: Record<string, string> = {
+      'nav.home': 'Home',
+      'nav.map': 'Map',
+      'nav.coinSystem': 'Coin System',
+      'nav.contribute': 'Contribute',
+      'nav.rteEnrollment': 'RTE Enrollment',
+      'nav.marketplace': 'Marketplace',
+      'hero.title': 'Fighting Hunger, Reducing Waste',
+      'hero.subtitle': 'Connect surplus food with those in need through our intelligent platform',
+      'hero.cta': 'Join the Movement',
+      'stats.food_saved': 'Meals Saved',
+      'stats.users': 'Active Users',
+      'stats.locations': 'Partner Locations',
+      'features.map.title': 'Interactive Food Map',
+      'features.map.desc': 'Find nearby food sources and donation points',
+      'features.ai.title': 'AI-Powered Matching',
+      'features.ai.desc': 'Smart algorithms connect food with need',
+      'features.community.title': 'Community Driven',
+      'features.community.desc': 'Local volunteers and organizations working together',
+      'contribute.title': 'Share Food, Share Hope',
+      'contribute.desc': 'Your contribution can make a difference',
+      'footer.mission': 'Building a world without hunger and food waste'
+    };
+    
+    return mappings[key] || key;
   };
 
   return (

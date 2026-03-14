@@ -1,44 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import PhoneLogin from './PhoneLogin';
-import OTPVerification from './OTPVerification';
+import AuthPage from './AuthPage';
 
 interface AuthWrapperProps {
   children: React.ReactNode;
 }
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
-  const { isAuthenticated, user } = useAuth();
-  const [step, setStep] = useState<'login' | 'otp'>('login');
+  const { isAuthenticated, isLoading } = useAuth();
 
-  const handleOTPSent = () => {
-    setStep('otp');
-  };
-
-  const handleBackToLogin = () => {
-    setStep('login');
-  };
-
-  const handleVerified = () => {
-    // Authentication is handled in the context
-    // The component will re-render with isAuthenticated: true
-  };
-
-  // Show authentication flow if user is not authenticated
-  if (!isAuthenticated) {
+  // Show a loading screen while Supabase checks the session
+  if (isLoading) {
     return (
-      <>
-        {step === 'login' && (
-          <PhoneLogin onOTPSent={handleOTPSent} />
-        )}
-        {step === 'otp' && user && (
-          <OTPVerification 
-            onBack={handleBackToLogin}
-            onVerified={handleVerified}
-          />
-        )}
-      </>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4" />
+        <p className="text-gray-500 font-medium">Verifying session...</p>
+      </div>
     );
+  }
+
+  // Show our beautiful new Supabase AuthPage if user is not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage />;
   }
 
   // Show main application if user is authenticated

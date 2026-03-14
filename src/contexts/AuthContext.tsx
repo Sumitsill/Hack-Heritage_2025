@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '../utils/supabase';
 
 interface User {
-  phone: string;
+  id: string;
+  email: string;
   name?: string;
-  isVerified: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (phone: string, name?: string) => void;
   logout: () => void;
-  verifyUser: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,58 +31,58 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated on app load
-    const storedUser = localStorage.getItem('shram_user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      if (parsedUser.isVerified) {
-        setUser(parsedUser);
+    // Check active session on load
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || 'User',
+        });
         setIsAuthenticated(true);
       }
-    }
+      setIsLoading(false);
+    };
+
+    initializeAuth();
+
+    // Listen to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || 'User',
+        });
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (phone: string, name?: string) => {
-    const newUser: User = {
-      phone,
-      name,
-      isVerified: false
-    };
-    setUser(newUser);
-    localStorage.setItem('shram_user', JSON.stringify(newUser));
-  };
-
-  const verifyUser = () => {
-    if (user) {
-      const verifiedUser: User = {
-        ...user,
-        isVerified: true
-      };
-      setUser(verifiedUser);
-      setIsAuthenticated(true);
-      localStorage.setItem('shram_user', JSON.stringify(verifiedUser));
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('shram_user');
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated,
-    login,
     logout,
-    verifyUser
+    isLoading
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!isLoading && children}
     </AuthContext.Provider>
   );
 };
