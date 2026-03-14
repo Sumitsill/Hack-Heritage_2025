@@ -29,7 +29,7 @@ export default function MapPage() {
     // Load Google Maps script
     if (!window.google) {
       const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBToEOs4jFNTl_DSDUGqUcUFTFKdDPThAE&callback=initMap`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=gemini_key`;
       script.async = true;
       document.head.appendChild(script);
 
